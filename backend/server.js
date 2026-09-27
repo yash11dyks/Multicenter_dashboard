@@ -46,5 +46,16 @@ app.get('/api/participants', async (req, res) => {
   }
 });
 
+// List all sites (for dropdown)
+app.get('/api/sites', async (req, res) => {
+  try {
+    const sites = await prisma.siteMaster.findMany();
+    res.json(sites);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch sites' });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
