@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SiteMaster {
+  siteId        String   @id @default(uuid()) @map("site_id")
+  siteName      String   @map("site_name")
+  piName        String   @map("pi_name")
+  irbApprovalNo String   @map("irb_approval_no")
+
+  participants  Participant[]
+
+  @@map("site_master")
+}
+
+model Participant {
+  studyId        String   @id @default(uuid()) @map("study_id")
+  siteId         String   @map("site_id")
+  enrollmentDate DateTime @default(now()) @map("enrollment_date")
+  consentStatus  String   @map("consent_status") // e.g. "pending", "consented", "withdrawn"
+
+  site           SiteMaster       @relation(fields: [siteId], references: [siteId])
+  clinicalVisits ClinicalVisit[]
+  imagingStudies ImagingStudy[]
+
+  @@map("participants")
+}
+
+model ClinicalVisit {
+  visitId        String   @id @default(uuid()) @map("visit_id")
+  studyId        String   @map("study_id")
+  visitDate      DateTime @map("visit_date")
+  formType       String   @map("form_type")
+  redcapRecordId String?  @map("redcap_record_id")
+
+  participant    Participant @relation(fields: [studyId], references: [studyId])
+
+  @@map("clinical_visits")
+}
+
+model ImagingStudy {
+  imageId          String   @id @default(uuid()) @map("image_id")
+  studyId          String   @map("study_id")
+  modality         String
+  acquisitionDate  DateTime @map("acquisition_date")
+  pacsAccessionNo  String   @map("pacs_accession_no")
+
+  participant      Participant @relation(fields: [studyId], references: [studyId])
+
+  @@map("imaging_studies")
+}
+
+model AuditLog {
+  eventId   String   @id @default(uuid()) @map("event_id")
+  userId    String   @map("user_id")
+  action    String
+  entity    String
+  timestamp DateTime @default(now())
+
+  @@map("audit_log")
+}
